@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Calendar, MapPin, ArrowRight, Sparkles, Search } from "lucide-react";
 
-// Sample Data (පසු කාලීනව මේවා Database එකෙන් ගන්නවා)
+// Sample Data 
 const dummyEvents = [
   {
     id: "1",
