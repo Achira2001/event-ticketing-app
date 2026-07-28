@@ -1,3 +1,198 @@
-export default function EventDetailPage() {
-  return <div className="p-8 text-2xl font-bold">Event Details Page</div>;
+"use client";
+
+import { use, useState } from "react";
+import Link from "next/link";
+import { Calendar, MapPin, Ticket, ShieldCheck, ArrowLeft, CheckCircle2 } from "lucide-react";
+
+// Dummy Data 
+const dummyEventsList = [
+  {
+    id: "1",
+    title: "Tech Innovation Summit 2026",
+    category: "Technology",
+    date: "Aug 15, 2026",
+    location: "Nelum Pokuna, Colombo",
+    price: 3500,
+    availableTickets: 24,
+    description: "Join Sri Lanka's largest gathering of tech innovators, developers, and entrepreneurs. Learn about AI, Cloud Computing, and the future of digital transformation in South Asia.",
+    imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "2",
+    title: "Summer Music Festival",
+    category: "Music",
+    date: "Sep 02, 2026",
+    location: "Galle Face Green, Colombo",
+    price: 5000,
+    availableTickets: 8,
+    description: "An unforgettable evening featuring top local artists and guest DJs under the stars. Food stalls, craft beer, and non-stop music all night long.",
+    imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "3",
+    title: "Startup Founders Meetup",
+    category: "Business",
+    date: "Sep 20, 2026",
+    location: "Trace Expert City, Colombo",
+    price: 1500,
+    availableTickets: 50,
+    description: "Network with venture capitalists, fellow founders, and industry mentors. Pitch your ideas, share insights, and discover funding opportunities.",
+    imageUrl: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "4",
+    title: "Digital Art & AI Exhibition",
+    category: "Art",
+    date: "Oct 05, 2026",
+    location: "Lionel Wendt, Colombo",
+    price: 2000,
+    availableTickets: 15,
+    description: "Explore the intersection of human creativity and generative artificial intelligence through immersive digital installations.",
+    imageUrl: "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=800&auto=format&fit=crop&q=80",
+  }
+];
+
+export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const eventId = resolvedParams.id;
+
+  const event = dummyEventsList.find((e) => e.id === eventId) || dummyEventsList[0];
+
+  const [ticketCount, setTicketCount] = useState(1);
+  const [isBooked, setIsBooked] = useState(false);
+
+  const totalAmount = event.price * ticketCount;
+
+  const handleBooking = () => {
+    setIsBooked(true);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      
+      {/* Back Button */}
+      <Link
+        href="/events"
+        className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-400 transition"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Events
+      </Link>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Column: Event Image & Details */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="relative h-80 sm:h-96 rounded-2xl overflow-hidden border border-slate-700 bg-slate-900">
+            <img
+              src={event.imageUrl}
+              alt={event.title}
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md text-indigo-400 text-xs font-semibold px-3 py-1 rounded-md border border-slate-700">
+              {event.category}
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-100">{event.title}</h1>
+
+            <div className="flex flex-wrap gap-4 text-sm text-slate-300">
+              <div className="flex items-center gap-2 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                <Calendar className="w-4 h-4 text-indigo-400" />
+                <span>{event.date}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                <MapPin className="w-4 h-4 text-indigo-400" />
+                <span>{event.location}</span>
+              </div>
+            </div>
+
+            <hr className="border-slate-800 my-4" />
+
+            <div>
+              <h2 className="text-lg font-bold text-slate-200 mb-2">About This Event</h2>
+              <p className="text-slate-400 leading-relaxed text-sm sm:text-base">{event.description}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Ticket Checkout Box */}
+        <div className="lg:col-span-1">
+          <div className="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-6 sticky top-24 space-y-6">
+            
+            <div className="flex justify-between items-baseline border-b border-slate-700/50 pb-4">
+              <span className="text-slate-400 text-sm">Ticket Price</span>
+              <span className="text-2xl font-bold text-slate-100">LKR {event.price.toLocaleString()}</span>
+            </div>
+
+            {/* Ticket Counter */}
+            {!isBooked ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-2">Select Tickets</label>
+                  <div className="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-lg p-2">
+                    <button
+                      onClick={() => setTicketCount((prev) => Math.max(1, prev - 1))}
+                      className="w-8 h-8 rounded-md bg-slate-800 text-slate-200 font-bold hover:bg-slate-700 transition"
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold text-slate-100">{ticketCount}</span>
+                    <button
+                      onClick={() => setTicketCount((prev) => Math.min(event.availableTickets, prev + 1))}
+                      className="w-8 h-8 rounded-md bg-slate-800 text-slate-200 font-bold hover:bg-slate-700 transition"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <span className="text-xs text-slate-400 mt-1 block text-right">
+                    Only {event.availableTickets} tickets left!
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-sm py-2">
+                  <span className="text-slate-400">Total Amount</span>
+                  <span className="text-xl font-bold text-indigo-400">LKR {totalAmount.toLocaleString()}</span>
+                </div>
+
+                <button
+                  onClick={handleBooking}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2"
+                >
+                  <Ticket className="w-5 h-5" />
+                  Book Tickets Now
+                </button>
+
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Instant Ticket Delivery & Secure Booking</span>
+                </div>
+              </div>
+            ) : (
+              /* Success State */
+              <div className="text-center py-6 space-y-4">
+                <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-100">Booking Successful!</h3>
+                <p className="text-xs text-slate-400">
+                  You have booked {ticketCount} ticket(s) for LKR {totalAmount.toLocaleString()}.
+                </p>
+                <Link
+                  href="/dashboard"
+                  className="block w-full bg-slate-700 hover:bg-slate-600 text-slate-100 text-sm font-semibold py-2.5 rounded-xl transition mt-4"
+                >
+                  View My Tickets
+                </Link>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
 }
