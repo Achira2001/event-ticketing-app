@@ -1,65 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Filter, Calendar, MapPin, Tag } from "lucide-react";
+import { Search, Filter, Calendar, MapPin, Loader2 } from "lucide-react";
 
-// Sample Events Data
-const initialEvents = [
-  {
-    id: "1",
-    title: "Tech Innovation Summit 2026",
-    category: "Technology",
-    date: "Aug 15, 2026",
-    location: "Nelum Pokuna, Colombo",
-    price: 3500,
-    availableTickets: 24,
-    imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "2",
-    title: "Summer Music Festival",
-    category: "Music",
-    date: "Sep 02, 2026",
-    location: "Galle Face Green, Colombo",
-    price: 5000,
-    availableTickets: 8,
-    imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "3",
-    title: "Startup Founders Meetup",
-    category: "Business",
-    date: "Sep 20, 2026",
-    location: "Trace Expert City, Colombo",
-    price: 1500,
-    availableTickets: 50,
-    imageUrl: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "4",
-    title: "Digital Art & AI Exhibition",
-    category: "Art",
-    date: "Oct 05, 2026",
-    location: "Lionel Wendt, Colombo",
-    price: 2000,
-    availableTickets: 15,
-    imageUrl: "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=600&auto=format&fit=crop&q=80",
-  }
-];
+interface EventType {
+  _id: string;
+  title: string;
+  category: string;
+  date: string;
+  location: string;
+  price: number;
+  availableTickets: number;
+  imageUrl: string;
+}
 
-const categories = ["All", "Technology", "Music", "Business", "Art"];
+const categories = ["All", "Technology", "Music", "Business", "Art", "Sports", "Education"];
 
 export default function EventsPage() {
+  const [events, setEvents] = useState<EventType[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // Search සහ Category Filter Logic එක
-  const filteredEvents = initialEvents.filter((event) => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          event.location.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fetch Events from Database via API
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const res = await fetch("/api/events");
+        const data = await res.json();
+        if (data.success) {
+          setEvents(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchEvents();
+  }, []);
+
+  // Search ans Category Filter Logic 
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "All" || event.category === selectedCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -67,9 +56,18 @@ export default function EventsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       
       {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-100">Browse Events</h1>
-        <p className="text-slate-400 text-sm mt-1">Find and book tickets for upcoming events in Sri Lanka</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-100">Browse Events</h1>
+          <p className="text-slate-400 text-sm mt-1">Discover live events hosted across Sri Lanka</p>
+        </div>
+
+        <Link
+          href="/events/create"
+          className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/30 text-center"
+        >
+          + Create Event
+        </Link>
       </div>
 
       {/* Search & Filter Controls */}
@@ -107,12 +105,18 @@ export default function EventsPage() {
 
       </div>
 
-      {/* Event Cards Grid */}
-      {filteredEvents.length > 0 ? (
+      {/* Loading Indicator */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 space-y-3">
+          <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+          <p className="text-slate-400 text-sm">Fetching events from database...</p>
+        </div>
+      ) : filteredEvents.length > 0 ? (
+        /* Event Cards Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
             <div
-              key={event.id}
+              key={event._id}
               className="bg-slate-800/50 rounded-xl border border-slate-700/60 overflow-hidden hover:border-slate-600 transition group flex flex-col"
             >
               <div className="relative h-48 w-full overflow-hidden bg-slate-900">
@@ -151,7 +155,7 @@ export default function EventsPage() {
                   </div>
 
                   <Link
-                    href={`/events/${event.id}`}
+                    href={`/events/${event._id}`}
                     className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-1.5 rounded-md text-sm transition"
                   >
                     View Event
@@ -162,8 +166,14 @@ export default function EventsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-slate-800/30 rounded-xl border border-slate-800">
+        <div className="text-center py-16 bg-slate-800/30 rounded-xl border border-slate-800 space-y-3">
           <p className="text-slate-400 text-base">No events found matching your criteria.</p>
+          <Link
+            href="/events/create"
+            className="inline-block text-indigo-400 hover:text-indigo-300 text-xs font-semibold"
+          >
+            Be the first to publish an event!
+          </Link>
         </div>
       )}
 
