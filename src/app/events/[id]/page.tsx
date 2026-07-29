@@ -1,65 +1,74 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, MapPin, Ticket, ShieldCheck, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Calendar, MapPin, Ticket, ShieldCheck, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 
-// Dummy Data 
-const dummyEventsList = [
-  {
-    id: "1",
-    title: "Tech Innovation Summit 2026",
-    category: "Technology",
-    date: "Aug 15, 2026",
-    location: "Nelum Pokuna, Colombo",
-    price: 3500,
-    availableTickets: 24,
-    description: "Join Sri Lanka's largest gathering of tech innovators, developers, and entrepreneurs. Learn about AI, Cloud Computing, and the future of digital transformation in South Asia.",
-    imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "2",
-    title: "Summer Music Festival",
-    category: "Music",
-    date: "Sep 02, 2026",
-    location: "Galle Face Green, Colombo",
-    price: 5000,
-    availableTickets: 8,
-    description: "An unforgettable evening featuring top local artists and guest DJs under the stars. Food stalls, craft beer, and non-stop music all night long.",
-    imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "3",
-    title: "Startup Founders Meetup",
-    category: "Business",
-    date: "Sep 20, 2026",
-    location: "Trace Expert City, Colombo",
-    price: 1500,
-    availableTickets: 50,
-    description: "Network with venture capitalists, fellow founders, and industry mentors. Pitch your ideas, share insights, and discover funding opportunities.",
-    imageUrl: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "4",
-    title: "Digital Art & AI Exhibition",
-    category: "Art",
-    date: "Oct 05, 2026",
-    location: "Lionel Wendt, Colombo",
-    price: 2000,
-    availableTickets: 15,
-    description: "Explore the intersection of human creativity and generative artificial intelligence through immersive digital installations.",
-    imageUrl: "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=800&auto=format&fit=crop&q=80",
-  }
-];
+interface EventType {
+  _id: string;
+  title: string;
+  category: string;
+  date: string;
+  location: string;
+  price: number;
+  availableTickets: number;
+  description: string;
+  imageUrl: string;
+}
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const eventId = resolvedParams.id;
 
-  const event = dummyEventsList.find((e) => e.id === eventId) || dummyEventsList[0];
-
+  const [event, setEvent] = useState<EventType | null>(null);
+  const [loading, setLoading] = useState(true);
   const [ticketCount, setTicketCount] = useState(1);
   const [isBooked, setIsBooked] = useState(false);
+
+  // Database එකෙන් Single Event එක Fetch කිරීම
+  useEffect(() => {
+    async function fetchEventDetails() {
+      try {
+        const res = await fetch(`/api/events/${eventId}`);
+        const data = await res.json();
+        if (data.success) {
+          setEvent(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch event details:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (eventId) {
+      fetchEventDetails();
+    }
+  }, [eventId]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+        <p className="text-slate-400 text-sm">Loading event details...</p>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
+        <h2 className="text-2xl font-bold text-slate-100">Event Not Found</h2>
+        <p className="text-slate-400 text-sm">The event you are looking for does not exist or has been removed.</p>
+        <Link
+          href="/events"
+          className="inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 font-semibold"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Events
+        </Link>
+      </div>
+    );
+  }
 
   const totalAmount = event.price * ticketCount;
 
@@ -112,7 +121,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
             <div>
               <h2 className="text-lg font-bold text-slate-200 mb-2">About This Event</h2>
-              <p className="text-slate-400 leading-relaxed text-sm sm:text-base">{event.description}</p>
+              <p className="text-slate-400 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+                {event.description}
+              </p>
             </div>
           </div>
         </div>
