@@ -20,6 +20,12 @@ export default function Navbar() {
             <Calendar className="w-4 h-4" />
             Events
           </Link>
+          <Link
+  href="/events/create"
+  className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-950/60 border border-indigo-800/60 px-3 py-1.5 rounded-lg transition"
+>
+  + Create Event
+</Link>
           <Link href="/dashboard" className="flex items-center gap-1.5 hover:text-indigo-400 transition">
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
